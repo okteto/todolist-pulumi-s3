@@ -1,0 +1,5 @@
+.git
+.github
+pulumi-aws-s3/node_modules
+server/node_modules
+client/node_modules

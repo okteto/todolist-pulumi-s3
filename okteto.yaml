@@ -1,0 +1,63 @@
+build:
+  server:
+    context: server
+  client:
+    context: client
+deploy:
+  image: pulumi/pulumi
+  commands:
+  - name: Create the AWS S3 Bucket
+    command: |
+      set -e
+      cd pulumi-aws-s3
+      resourceName="${OKTETO_NAMESPACE}-oktetodo"
+      
+      pulumi stack init "${OKTETO_NAMESPACE}"
+      yarn install
+      pulumi config set bucketName $resourceName
+      pulumi up --yes
+      
+      s3Dashboard="https://s3.console.aws.amazon.com/s3/buckets/${resourceName}"
+
+      # make the values available to the following steps and the dashboard
+      {
+        echo "OKTETO_EXTERNAL_S3_ENDPOINTS_BUCKET_URL=$s3Dashboard"
+        echo "S3_BUCKET_NAME=$resourceName"
+      } >> "$OKTETO_ENV"
+  - name: Create the AWS secret
+    command: |
+      kubectl create secret generic aws-credentials --save-config --dry-run=client --from-literal=AWS_REGION=$AWS_REGION --from-literal=AWS_DEFAULT_REGION=$AWS_REGION --from-literal=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --from-literal=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -o yaml | kubectl apply -f -
+  - name: Deploy the DB
+    command: helm upgrade --install db db/chart
+  - name: Deploy the Node.js Backend
+    command: helm upgrade --install server server/chart --set image=${OKTETO_BUILD_SERVER_IMAGE} --set bucket="$S3_BUCKET_NAME"
+  - name: Deploy the React Frontend
+    command: helm upgrade --install client client/chart --set image=${OKTETO_BUILD_CLIENT_IMAGE}
+
+destroy:
+  image:  pulumi/pulumi
+  commands:
+  - name: Delete the AWS infrastructure
+    command: |
+      set -e
+      cd pulumi-aws-s3
+      pulumi stack select "${OKTETO_NAMESPACE}"
+      pulumi destroy --yes
+      pulumi stack rm "${OKTETO_NAMESPACE}" --yes
+
+external:
+  s3:
+    icon: aws
+    notes: s3/notes.md
+    endpoints:
+    - name: bucket
+
+dev:
+  server:
+    command: bash
+    sync:
+      - server:/app
+  client:
+    command: npm start
+    sync:
+      - client:/app

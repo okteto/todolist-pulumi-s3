@@ -1,0 +1,3 @@
+replicaCount: 1
+image: "rinkiyakedad/oktetodo-s3-client"
+url: "todo.app.arsh.okteto.me"
