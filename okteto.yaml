@@ -10,7 +10,7 @@ deploy:
     command: |
       set -e
       cd pulumi-aws-s3
-      resourceName="${OKTETO_NAMESPACE}-oktetodo"
+      resourceName="${OKTETO_NAMESPACE}-todolist-pulumi"
       
       pulumi stack init "${OKTETO_NAMESPACE}"
       yarn install
