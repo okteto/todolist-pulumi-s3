@@ -1,4 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import EditTodo from "./EditTodo";
 
@@ -48,6 +50,9 @@ const ListTodos = () => {
         getTodos();
     }, []);
 
+    const notify = () => toast("Todos Saved!");
+
+
     return (
         <Fragment>
             <table class="table mt-5 text-center">
@@ -69,7 +74,10 @@ const ListTodos = () => {
 
                 </tbody>
             </table>
-            <button className="btn btn-info" onClick={() => saveTodosToS3()}>Save</button>
+            <div>
+                <button className="btn btn-info" onClick={() => { saveTodosToS3(); notify(); }}>Save</button>
+                <ToastContainer />
+            </div>
         </Fragment>
     );
 }
