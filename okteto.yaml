@@ -16,12 +16,18 @@ deploy:
       yarn install
       pulumi config set bucketName $resourceName
       pulumi up --yes
+
+      # create the URL for the Pulumi Dashboard
+      pulumi_about_json=$(pulumi about --json)
+      fully_qualified_name=$(echo "$pulumi_about_json" | grep -o '"fullyQualifiedName": "[^"]*' | awk -F'": "' '{print $2}')
+      stack_url="https://app.pulumi.com/$fully_qualified_name"
       
       s3Dashboard="https://s3.console.aws.amazon.com/s3/buckets/${resourceName}"
 
       # make the values available to the following steps and the dashboard
       {
         echo "OKTETO_EXTERNAL_S3_ENDPOINTS_BUCKET_URL=$s3Dashboard"
+        echo "OKTETO_EXTERNAL_PULUMI_ENDPOINTS_STACK_URL=$stack_url"
         echo "S3_BUCKET_NAME=$resourceName"
       } >> "$OKTETO_ENV"
   - name: Create the AWS secret
@@ -48,9 +54,14 @@ destroy:
 external:
   s3:
     icon: aws
-    notes: s3/notes.md
+    notes: pulumi-aws-s3/bucket-notes.md
     endpoints:
     - name: bucket
+  pulumi:
+    icon: dashboard
+    notes: pulumi-aws-s3/notes.md
+    endpoints:
+    - name: stack
 
 dev:
   server:
