@@ -1,20 +1,16 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import EditTodo from "./EditTodo";
 
-
 const ListTodos = () => {
-
     const [todos, setTodos] = useState([]);
 
     const deleteTodo = async (id) => {
         try {
             await fetch(`/todos/${id}`, {
-                method: "DELETE"
+                method: "DELETE",
             });
-            setTodos(todos.filter(todo => todo.todo_id !== id));
+            setTodos(todos.filter((todo) => todo.todo_id !== id));
         } catch (err) {
             console.error(err.message);
         }
@@ -24,7 +20,7 @@ const ListTodos = () => {
         try {
             const response = await fetch("/todos");
             const jsonData = await response.json();
-            setTodos(jsonData)
+            setTodos(jsonData);
         } catch (err) {
             console.error(err.message);
         }
@@ -32,54 +28,71 @@ const ListTodos = () => {
 
     const saveTodosToS3 = async () => {
         try {
-            const response = await fetch('/todos/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/todos/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ todos: todos }),
             });
             const data = await response.json();
             console.log(data.message, data.s3Url);
         } catch (error) {
-            console.error('Error saving todos to S3:', error);
+            console.error("Error saving todos to S3:", error);
         }
     };
-
 
     // useEffect makes a call to the backend to get all the todos when the component mounts
     useEffect(() => {
         getTodos();
     }, []);
 
-    const notify = () => toast("Todos Saved!");
-
-
     return (
         <Fragment>
-            <table class="table mt-5 text-center">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {todos.map(todo => (
-                        <tr key={todo.todo_id}>
-                            <td>{todo.description}</td>
-                            <td><EditTodo todo={todo} /></td>
-                            <td><button className="btn btn-danger" onClick={() => deleteTodo(todo.todo_id)}>Delete</button></td>
-                        </tr>
-                    ))}
-
-                </tbody>
-            </table>
-            <div>
-                <button className="btn btn-info" onClick={() => { saveTodosToS3(); notify(); }}>Save</button>
-                <ToastContainer />
-            </div>
+            {todos?.length > 0 && (
+                <>
+                    <h2 className="title">Todo</h2>
+                    <ul className="app-todos">
+                        {todos.map((todo) => (
+                            <li key={todo.todo_id}>
+                                <span className="app-todos-title">{todo.description}</span>
+                                <div class="app-todos-buttons">
+                                    <EditTodo todo={todo} />
+                                    <button
+                                        className="submit-button submit-button-small delete"
+                                        onClick={() => deleteTodo(todo.todo_id)}
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="24"
+                                            height="24"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            class="lucide lucide-x"
+                                        >
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <footer class="app-footer">
+                        <button
+                            type="submit"
+                            className="submit-button save"
+                            onClick={() => saveTodosToS3()}
+                        >
+                            Save
+                        </button>
+                    </footer>
+                </>
+            )}
         </Fragment>
     );
-}
+};
 
 export default ListTodos;
