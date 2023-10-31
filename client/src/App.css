@@ -192,3 +192,20 @@ h2.modal-title {
   appearance: none;
   background: transparent;
 }
+
+.notification {
+  position: fixed;
+  top: -4em;
+  right: 1em;
+  padding: 1em;
+  background: #007bff;
+  color: #fff;
+  font-weight: bold;
+  border: 2px #0e203d solid;
+  border-radius: 10px;
+  transition: top 600ms cubic-bezier(0.29, 0.84, 0.68, 1.17);
+}
+
+.notification-active {
+  top: 1em;
+}
